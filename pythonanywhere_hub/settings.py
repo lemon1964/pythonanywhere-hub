@@ -10,7 +10,12 @@ SECRET_KEY = "django-insecure-hfwdr%@ce$hk2apkgqcq&$k0%^uixq3lpwv2tm$jtg#nyf$=jd
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "lemon1964.pythonanywhere.com",
+    "127.0.0.1",
+    "localhost",
+]
+
 
 INSTALLED_APPS = [
     "django.contrib.admin",
