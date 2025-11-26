@@ -1,0 +1,32 @@
+# pythonanywhere-hub/.gitignore
+__pycache__/
+.pytest_cache
+pytest.ini
+*.pyc
+*.log
+*.env
+*.DS_Store
+.venv/
+venv/
+.idea/
+.vscode/
+/static/localtonet
+text.txt
+
+.env
+# db.sqlite3
+# *.sqlite3
+# *.sqlite3-journal
+
+# Django static/media (если появятся позже)
+staticfiles/
+media/
+
+# Python tooling caches
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+*.egg-info/
+dist/
+build/
