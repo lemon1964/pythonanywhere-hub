@@ -3,6 +3,7 @@ from pathlib import Path
 from decouple import config
 
 TRACKER_KEY = config("TRACKER_KEY", default="")
+MARAT_TRACK_KEY = config("MARAT_TRACK_KEY", default="")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
