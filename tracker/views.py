@@ -5,6 +5,7 @@ from django.db import transaction
 from django.db.models import F
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET
+from django.utils import timezone
 
 from .models import Counter
 
@@ -93,7 +94,12 @@ def pixel(request):
                 # Если строка уже есть — увеличиваем count на 1.
                 # F("count") + 1 делает инкремент прямо на уровне SQL,
                 # что безопаснее при параллельных запросах.
-                Counter.objects.filter(pk=obj.pk).update(count=F("count") + 1)
+                
+                # Counter.objects.filter(pk=obj.pk).update(count=F("count") + 1)
+                Counter.objects.filter(pk=obj.pk).update(
+                    count=F("count") + 1,
+                    updated_at=timezone.now(),
+                )
 
     # Возвращаем наш GIF-пиксель
     resp = HttpResponse(_GIF_1x1, content_type="image/gif")
