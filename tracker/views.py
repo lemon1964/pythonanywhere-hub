@@ -47,17 +47,24 @@ def pixel(request):
     # k — простой секретный ключ против накрутки
     key = request.GET.get("k", "")
 
-
     is_main = bool(settings.TRACKER_KEY) and key == settings.TRACKER_KEY
-    is_marat = (
-        bool(getattr(settings, "MARAT_TRACK_KEY", "")) and key == settings.MARAT_TRACK_KEY
+    is_logrun = (
+        bool(getattr(settings, "LOGRUN_TRACK_KEY", "")) and key == settings.LOGRUN_TRACK_KEY
     )
 
-    if not (is_main or is_marat):
-        # ключ не наш — просто отдаём гифку, но НИЧЕГО не пишем в базу
+    if not (is_main or is_logrun):
         resp = HttpResponse(_GIF_1x1, content_type="image/gif")
         resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         return resp
+    # is_marat = (
+    #     bool(getattr(settings, "MARAT_TRACK_KEY", "")) and key == settings.MARAT_TRACK_KEY
+    # )
+
+    # if not (is_main or is_marat):
+    #     # ключ не наш — просто отдаём гифку, но НИЧЕГО не пишем в базу
+    #     resp = HttpResponse(_GIF_1x1, content_type="image/gif")
+    #     resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    #     return resp
 
     # # Если ключ настроен (не пустой) и не совпал — ничего не считаем,
     # # но GIF всё равно возвращаем (не даём понять, что ключ неверный).
@@ -112,7 +119,8 @@ def stats(request):
     # Берём все счётчики и сортируем по убыванию count
     qs = Counter.objects.all().order_by("-count")
     # ✅ отфильтровываем всё, что принадлежит "marat:"
-    qs = qs.exclude(src__startswith="marat:")
+    qs = qs.exclude(src__startswith="logrun:")
+    # qs = qs.exclude(src__startswith="marat:")
 
     # Если передали src — фильтруем по нему
     if src:
@@ -130,24 +138,33 @@ def stats(request):
     ]
     return JsonResponse({"items": data})
 
+
 @require_GET
-def stats_marat(request):
+def stats_logrun(request):
     """
-    GET /api/stats-marat?src=...&k=MARAT_SECRET
-    Возвращает только события Марата (src, начинающиеся с "marat:")
+    GET /api/stats-logrun?src=...&k=LOGRUN_SECRET
+
+    Возвращает только события Logrun:
+    src должен начинаться с "logrun:".
     """
     key = request.GET.get("k", "")
-    if not (getattr(settings, "MARAT_TRACK_KEY", "") and key == settings.MARAT_TRACK_KEY):
+
+    if not (
+        getattr(settings, "LOGRUN_TRACK_KEY", "")
+        and key == settings.LOGRUN_TRACK_KEY
+    ):
         return JsonResponse({"detail": "Forbidden"}, status=403)
 
     src = _clean(request.GET.get("src", ""), 120)
 
-    qs = Counter.objects.filter(src__startswith="marat:").order_by("-count")
+    qs = Counter.objects.filter(
+        src__startswith="logrun:"
+    ).order_by("-count")
 
     if src:
-        # Марат может передавать src без префикса, мы сами добавим
-        if not src.startswith("marat:"):
-            src = f"marat:{src}"
+        if not src.startswith("logrun:"):
+            src = f"logrun:{src}"
+
         qs = qs.filter(src=src)
 
     data = [
@@ -159,5 +176,38 @@ def stats_marat(request):
         }
         for c in qs[:500]
     ]
+
     return JsonResponse({"items": data})
 
+# @require_GET
+# def stats_marat(request):
+#     """
+#     GET /api/stats-marat?src=...&k=MARAT_SECRET
+#     Возвращает только события Марата (src, начинающиеся с "marat:")
+#     """
+#     key = request.GET.get("k", "")
+#     if not (
+#         getattr(settings, "MARAT_TRACK_KEY", "") and key == settings.MARAT_TRACK_KEY
+#     ):
+#         return JsonResponse({"detail": "Forbidden"}, status=403)
+
+#     src = _clean(request.GET.get("src", ""), 120)
+
+#     qs = Counter.objects.filter(src__startswith="marat:").order_by("-count")
+
+#     if src:
+#         # Марат может передавать src без префикса, мы сами добавим
+#         if not src.startswith("marat:"):
+#             src = f"marat:{src}"
+#         qs = qs.filter(src=src)
+
+#     data = [
+#         {
+#             "event": c.event,
+#             "src": c.src,
+#             "count": c.count,
+#             "updated_at": c.updated_at.isoformat(),
+#         }
+#         for c in qs[:500]
+#     ]
+#     return JsonResponse({"items": data})
